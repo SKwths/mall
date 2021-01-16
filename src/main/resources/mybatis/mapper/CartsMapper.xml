@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="bjfu.six.mall.mapper.CartsMapper">
+    <select id="getByUserid" parameterType="java.lang.String" resultType="bjfu.six.mall.entity.Carts">
+        select * from action_carts where user_id=#{user_id}
+    </select>
+
+    <insert id="insertCarts" parameterType="bjfu.six.mall.entity.Carts">
+        insert into action_carts(id,user_id,product_id,quantity,created,updated,checked)
+        values (#{id},#{user_id},#{product_id},#{quantity},#{created},#{updated},#{checked))
+    </insert>
+
+    <update id="updateCarts" parameterType="bjfu.six.mall.entity.Carts">
+        update action_carts
+        set id=#{id},
+        user_id=#{user_id},
+        product_id=#{product_id},
+        quantity=#{quantity},
+        created=#{created},
+        updated=#{updated},
+        checked=#{checked)
+        where id=#{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.String">
+        delete from action_carts
+        where id=#{id}
+    </delete>
+</mapper>

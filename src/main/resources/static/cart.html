@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>购物车 | 机械配件商城</title>
+		<link rel="stylesheet" type="text/css" href="./element-ui/index.css">
+		<link rel="stylesheet" type="text/css" href="./css/common.css" />
+		<link rel="stylesheet" type="text/css" href="./components/min-width-container.css"/>
+		<link rel="stylesheet" type="text/css" href="./components/footer-bottom.css"/>
+		<link rel="stylesheet" type="text/css" href="./components/footer-image.css" />
+		<link rel="stylesheet" type="text/css" href="./components/footer-link.css" />
+		<link rel="stylesheet" type="text/css" href="./components/header-full.css" />
+		<link rel="stylesheet" type="text/css" href="./components/user-frame.css" />
+		<style>
+			.app-title{
+				line-height: 2;
+				font-weight: 900;
+			}
+			
+			.app-header{
+				display: grid;
+				width: 100%;
+				grid-template-columns: 1fr 200px 200px 200px 100px;
+				border-top: 3px solid #40B4E6;
+				background: #F2F2F2;
+			}
+			
+			.app-header > div{
+				line-height: 2.2;
+			}
+			
+			.app-item{
+				display: grid;
+				width: 100%;
+				grid-template-columns: 1fr 200px 200px 200px 100px;
+				grid-template-rows: 80px;
+				border-left: 1px solid #F2F2F2;
+				border-top: 1px solid #F2F2F2;
+			}
+			
+			.app-item > div{
+				border-bottom: 1px solid #F2F2F2;
+				border-right: 1px solid #F2F2F2;
+				line-height: 78px;
+			}
+			
+			.app-item  .el-input-number__decrease, .app-item  .el-input-number__increase{
+				height: 26px;
+				line-height: 26px;
+			} 
+			
+			.app-counter{
+				display: flex;
+				height: 55px;
+				line-height: 55px;
+				align-items: center;
+				background: #F2F2F2;
+				margin-top: 30px;
+			}
+			
+			.app-counter *{
+				vertical-align: middle;
+			}
+			
+			.app-counter-clear{
+				flex-grow: 1;
+				margin-left: 40px;
+			}
+			
+			.app-counter-price{
+				margin: 0 30px;
+			}
+			
+			.app-counter-submit{
+				align-self: stretch;
+				width: 128px;
+				background: #F6660E;
+				line-height: 55px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<header-full :bordered="true"></header-full>
+			<user-frame class="m-t-20">
+				<div class="app-title">
+					商品信息
+				</div>
+				<div class="app-header center text-4 text-general-1">
+					<div>商品名称</div>
+					<div>单价（元）</div>
+					<div>数量</div>
+					<div>实付（元）</div>
+					<div>操作</div>
+				</div>
+				<div class="app-item center text-4 text-general-1 m-t-20" v-for="item in cart.lists">
+					<div>{{item.name}}</div>
+					<div>¥{{item.price.toFixed(2)}}</div>
+					<div><el-input-number v-model="item.quantity" :min="1" :max="10" size="mini" @change="change_num(item.productId, $event)"></el-input-number></div>
+					<div>¥{{ (item.totalPrice).toFixed(2)}}</div>
+					<div class="pointer" @click="remove_cart_item(item.productId)">删除</div>
+				</div>
+				<div class="app-counter text-4 text-general-1">
+					<div class="app-counter-clear pointer"><span class="pointer" @click="clear_cart">清空购物车</span></div>
+					<div class="app-counter-price">商品总金额: <span class="text-1 m-l-8" style="font-weight: 900; color: #F65D03;">¥{{cart.totalPrice.toFixed(2)}}</span></div>
+					<div class="app-counter-submit pointer center text-weak-4" @click="go_buy">提交订单</div>
+				</div>
+			</user-frame>
+			<footer-image></footer-image>
+			<footer-link></footer-link>
+			<footer-bottom></footer-bottom>
+		</div>
+		<script src="./js/vue.js"></script>
+		<script src="./js/axios.min.js"></script>
+		<script src="./element-ui/index.js"></script>
+		<script src="./components/min-width-container.js"></script>
+		<script src="./components/footer-image.js"></script>
+		<script src="./components/footer-bottom.js"></script>
+		<script src="./components/footer-link.js"></script>
+		<script src="./components/header-full.js"></script>
+		<script src="./components/user-frame.js"></script>
+		<script>
+		    const app = new Vue({
+		        el: "#app",
+		        data(){
+					return {
+						cart: {
+							lists: [],
+							totalPrice: 0
+						}
+					};
+		        },
+		        created(){
+					this.load_cart();
+		        },
+		        methods: {
+					go_buy(){
+						if(this.cart.lists.length === 0){
+							this.$message.error("请添加商品后再提交订单");
+							return;
+						}
+						sessionStorage.setItem("cart", JSON.stringify(this.cart));
+						window.location.href = "/submit-order.html";
+					},
+					/*获取购物车中商品信息*/
+					load_cart(){
+						axios.post("/cart/findallcarts.do").then(response=>{
+							if(response.data.status === 0){
+								this.cart = response.data.data;
+							}else{
+								console.log(response.data.msg);
+							}
+						}).catch(err=>{
+							console.log(err);
+						});
+					},
+					/*改变商品数量*/
+					change_num(product_id, num){
+						const params = new URLSearchParams();
+						params.append("productId", product_id);
+						params.append("count", num);
+						axios.post("/cart/updatecarts.do", params).then(response=>{
+							if(response.data.status === 0){
+								this.load_cart();
+							}else{
+								this.$message.error(response.data.msg);
+							}
+						}).catch(err=>{
+							this.$message.error("连接服务器异常");
+						});
+					},
+					/*清空购物车*/
+					clear_cart(){
+						this.$confirm('确实清空购物车吗?', '提示', {
+						    confirmButtonText: '确定',
+						    cancelButtonText: '取消',
+						    type: 'warning'
+						}).then(() => {
+						    axios.post("/cart/clearcarts.do").then(response=>{
+								if(response.data.status === 0){
+									this.$message({
+										message: "清空成功",
+										type: "success"
+									});
+									setTimeout(()=>{
+										window.location.reload();
+									}, 2000);
+								}else{
+									this.$message.error(response.data.msg);
+								}
+							}).catch(err=>{
+								this.$message.error("连接服务器异常");
+							});
+						}).catch(() => { });
+					},
+					/*删除商品项*/
+					remove_cart_item(item_id){
+						this.$confirm('确实清删除此项吗?', '提示', {
+						    confirmButtonText: '确定',
+						    cancelButtonText: '取消',
+						    type: 'warning'
+						}).then(() => {
+							const params = new URLSearchParams();
+							params.append("productId", item_id);
+						    axios.post("/cart/delcarts.do", params).then(response=>{
+								if(response.data.status === 0){
+									this.$message({
+										message: "删除成功",
+										type: "success"
+									});
+									setTimeout(()=>{
+										window.location.reload();
+									}, 2000);
+								}else{
+									this.$message.error(response.data.msg);
+								}
+							}).catch(err=>{
+								this.$message.error("连接服务器异常");
+							});
+						}).catch(() => { });
+					}
+		        }
+		    });
+			
+		</script>
+	</body>
+</html>
+
+
+
+
+

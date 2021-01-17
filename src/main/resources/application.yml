@@ -20,9 +20,3 @@
         content-type: textml
       #模版模式
       mode: HTML
-
-
-  #整合mybatis
-  mybatis:
-      config-location: classpath:mybatis/SqlMapConfig.xml
-      mapper-locations: classpath:mybatis/mapper/*.xml

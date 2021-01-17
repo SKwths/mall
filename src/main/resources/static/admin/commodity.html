@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>商品管理 | 后台管理 </title>
+    <link rel="stylesheet" type="text/css" href="./../element-ui/index.css">
+    <link rel="stylesheet" type="text/css" href="./../css/common.css" />
+	<link rel="stylesheet" type="text/css" href="../components/admin-frame.css" />
+    <link rel="stylesheet" type="text/css" href="./../components/min-width-container.css"/>
+    <style>
+		#app{
+			height: 100%;
+		}
+
+		.app-search{
+			display: flex;
+			align-items: center;
+			height:65px;
+		}
+		
+		#app .el-button--primary{
+			background-color: #3C8DBC;
+			border-color: #3C8DBC;
+		}
+	 
+    </style>
+</head>
+<body>
+<div id="app">
+	<admin-frame active="1" title="商品管理">
+		<min-width-container>
+		    <div class="m-t-8 m-b-8">
+		        <div class="app-title text-2 text-important">商品列表</div>
+		    </div>
+		    <div class="app-search">
+		        <div class="bold m-r-20">商品编号:</div>
+				<div><el-input v-model="search_content" placeholder="请输入商品编号" style="width: 245px;"></el-input></div>
+				<div class="m-l-16"><el-button type="primary" size="mini" @click="search">查询</el-button></div>
+				<div style="flex-grow: 1;"></div>
+				<div><el-button  type="primary" size="mini" @click="commodity_add">新增商品</el-button></div>
+		    </div>
+			<div>
+				<template>
+					<el-table
+							:data="commodities"
+							border
+							style="width: 100%">
+						<el-table-column
+								fixed
+								prop="id"
+								label="编号"
+								width="150">
+						</el-table-column>
+						<el-table-column
+								prop="name"
+								label="商品名称">
+						</el-table-column>
+						<el-table-column
+								prop="price"
+								label="价格"
+								width="120">
+						</el-table-column>
+						<el-table-column
+								label="是否上架"
+								width="120">
+								<template slot-scope="scope">
+									<el-switch
+									  v-model="scope.row.isUp"
+									  active-color="#13ce66"
+									  inactive-color="#ff4949"
+									  @change="set_status(scope.row, !scope.isUp, scope.isHot)">
+									</el-switch>
+								</template>
+						</el-table-column>
+						<el-table-column
+								label="是否热销"
+								width="120">
+								<template slot-scope="scope">
+									<el-switch
+									  v-model="scope.row.isHot"
+									  active-color="#13ce66"
+									  inactive-color="#ff4949"
+									  @change="set_status(scope.row, scope.isUp, !scope.isHot)">
+									</el-switch>
+								</template>
+						</el-table-column>
+						<el-table-column
+								fixed="right"
+								label="操作"
+								width="100">
+							<template slot-scope="scope">
+								<el-button type="text" size="small" @click="window.location.href = '/admin/commodity-new.html?' + scope.row.id ">编辑</el-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</template>
+			</div>
+		    <div class="app-tabs  m-t-20 m-b-20">
+		
+		    </div>
+		
+		</min-width-container>
+	</admin-frame>
+</div>
+<script src="./../js/vue.js"></script>
+<script src="./../js/axios.min.js"></script>
+<script src="./../element-ui/index.js"></script>
+<script src="../components/admin-frame.js"></script>
+<script src="./../components/min-width-container.js"></script>
+<script>
+    const app = new Vue({
+        el: "#app",
+        data(){
+            return {
+                commodities: [],
+				search_content: ''
+            };
+        },
+        created(){
+        	this.load_commodities("");
+        },
+        methods: {
+            search(){
+            	if(/^\d+$/.test(this.search_content)){
+            		this.load_commodities(Number(this.search_content));
+            	}else if(this.search_content.trim() === ''){
+            		this.load_commodities('');
+            	}else{
+            		this.$message.error("请输入正确的商品编号");
+            	}
+            },
+            commodity_add(){
+                window.location.href = "/admin/commodity-new.html";
+            },
+			load_commodities(id){
+				const params = new URLSearchParams();
+				params.append("id", id);
+				axios.post("/mgr/product/productlist.do", params).then(response=>{
+					if(response.data.status === 0){
+						if(!Array.isArray(response.data.data)){
+							response.data.data = [response.data.data];
+						}
+						for(let commodity of response.data.data){
+							commodity.isUp = commodity.status === 1;
+							commodity.isHot = commodity.isHot === 1;
+						}
+						this.commodities = response.data.data;
+						console.log(response.data.data);
+					}else{
+						if(response.data.msg){
+							console.log(response.data.msg);
+							this.$message.error(response.data.msg);
+						}
+					}
+				}).catch(err=>{
+					console.log(err);
+				});
+			},
+			set_status(item, isUpOld, isHotOld){
+				const params = new URLSearchParams();
+				params.append("productId", item.id);
+				params.append("status", item.isUp ? 1 : 0);
+				params.append("hot", item.isHot ? 1 : 0);
+				axios.post("/mgr/product/setstatus.do", params).then(response=>{
+					if(response.data.status === 0){
+						this.$message({
+							message: "设置成功",
+							type: "success"
+						});
+					}else{
+						if(response.data.msg){
+							this.$message.error(response.data.msg);
+						}
+						item.isUp = isUpOld;
+						item.isHot = isHotOld;
+					}
+				}).catch(err=>{
+					console.log(err);
+					this.$message.error("连接服务器异常");
+					item.isUp = isUpOld;
+					item.isHot = isHotOld;
+				})
+			}
+        },
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bjfu.six.mall.mapper.ProductsMapper">
+    <insert id="insertProducts" parameterType="bjfu.six.mall.entity.Products">
+        insert into action_products(id,name,product_id,parts_id,icon_url,sub_images,detail,spec_param,
+        price,stock,status,is_hot,crated,updated)
+        values (#{id},#{name},#{product_id},#{parts_id},#{icon_url},#{sub_images},#{detail},
+        #{spec_param},#{price},#{stock},#{status},#{is_hot},#{crated},#{updated})
+    </insert>
+
+    <delete id="deleteById" parameterType="java.lang.String">
+        delete from action_products
+        where id=#{id}
+    </delete>
+
+    <update id="updateProducts" parameterType="bjfu.six.mall.entity.Products">
+        update action_products
+        set id=#{id},
+        name=#{name},
+        product_id=#{product_id},
+        parts_id=#{parts_id},
+        icon_url=#{icon_url},
+        sub_images=#{sub_images},
+        detail=#{detail},
+        spec_param=#{spec_param},
+        price=#{price},
+        stock=#{stock},
+        status=#{status},
+        is_hot=#{is_hot},
+        crated=#{crated},
+        updated=#{updated}
+    </update>
+
+    <select id="getByProductid" parameterType="java.lang.String" resultType="bjfu.six.mall.entity.Products">
+        select * from action_products
+        where product_id=#{product_id}
+    </select>
+</mapper>

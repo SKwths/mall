@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bjfu.six.mall.mapper.OrdersMapper">
+    <insert id="insertOrders" parameterType="bjfu.six.mall.entity.Orders">
+        insert into action_orders(id,uid,order_no,addr_id,amount,type, freight,status,
+        payment_time,delivery_time,finish_time,close_time,updated,created)
+        values (#{id},#{uid},#{order_no},#{addr_id},#{amount},#{type},#{freight},#{status},
+        #{payment_time},#{delivery_time},#{finish_time},#{close_time},#{updated},#{created})
+    </insert>
+
+    <delete id="deleteById" parameterType="java.lang.String">
+        delete from action_orders
+        where id=#{id}
+    </delete>
+
+    <select id="getByOrderno" parameterType="java.lang.String" resultType="bjfu.six.mall.entity.Orders">
+        select * from action_orders
+        where orderno=#{order_no}
+    </select>
+
+    <select id="getByUserid" parameterType="java.lang.String" resultType="bjfu.six.mall.entity.Orders">
+        select * from action_orders
+        where uid=#{uid}
+    </select>
+
+    <update id="updateOrders" parameterType="bjfu.six.mall.entity.Orders">
+        update action_orders
+        set id=#{id},
+        uid=#{uid},
+        order_no=#{order_no},
+        addr_id=#{addr_id},
+        amount=#{amount},
+        type=#{type},
+        freight=#{freight},
+        status=#{status},
+        payment_time=#{payment_time},
+        delivery_time=#{delivery_time},
+        finish_time=#{finish_time},
+        close_time=#{close_time},
+        updated=#{updated},
+        created=#{created}
+        where id=#{id}
+    </update>
+</mapper>
